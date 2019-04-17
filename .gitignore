@@ -16,6 +16,8 @@
 # CUSTOM IGNORES FOR THIS PROJECT
 *.zip
 [Pr]roperties/
+Properties/
+properties/
 
 # Build results
 [Dd]ebug/
