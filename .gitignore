@@ -13,6 +13,10 @@
 # User-specific files (MonoDevelop/Xamarin Studio)
 *.userprefs
 
+# CUSTOM IGNORES FOR THIS PROJECT
+*.zip
+[Pr]roperties/
+
 # Build results
 [Dd]ebug/
 [Dd]ebugPublic/
