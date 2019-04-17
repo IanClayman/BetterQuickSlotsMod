@@ -40,8 +40,8 @@ namespace BetterQuickSlots
 
     public class BetterQuickSlotsMod : PartialityMod
     {
-        // sbsPatch (SkillBarSwitcherPatch):Does the actual work related to loading into temp arrays, saving to/reading from JSON, etc.
-        public static ScriptLoad sbsPatch;
+        // betterQuickSlotsPatch:Does the actual work related to loading into temp arrays, saving to/reading from JSON, etc.
+        public static ScriptLoad betterQuickSlotsPatch;
 
         // modConfigFile: string declaring the location and name of the JSON file that stores each character's settings
         public static string modConfigFile = "Mods/BetterQuickSlots_Config.json";
@@ -90,14 +90,18 @@ namespace BetterQuickSlots
             // REQUIRED
             base.OnEnable();
 
-            // ACTUAL WORK STARTS HERE
+            // *** START NEW CODE -- 4-17-2019 2:35PM ***
+            // Attempting to add a keybind action
+            CustomKeybindings.AddAction("Switch Quick Slot Bars", CustomKeybindings.KeybindingsCategory.Actions, false, 1, CustomKeybindings.InputActionType.Button);
+            // *** END NEW CODE -- 4-17-2019 2:35PM ***
+
             ScriptLoad.betterQuickSlots = this;
 
             LoadConfig();
 
             GameObject obj = new GameObject();
-            sbsPatch = obj.AddComponent<ScriptLoad>();
-            sbsPatch.Initialise();
+            betterQuickSlotsPatch = obj.AddComponent<ScriptLoad>();
+            betterQuickSlotsPatch.Initialise();
         }
 
         // ***Helper functions for this specific mod***

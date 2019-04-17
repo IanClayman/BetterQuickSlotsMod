@@ -58,9 +58,31 @@ namespace BetterQuickSlots
             On.NetworkLevelLoader.LevelDoneLoading += new On.NetworkLevelLoader.hook_LevelDoneLoading(LevelDoneLoadingHook);
             On.CharacterQuickSlotManager.OnAssigningQuickSlot_1 += new On.CharacterQuickSlotManager.hook_OnAssigningQuickSlot_1(CQSManager_OnAssigningQuickSlotHook);
 
+            // *** NEW CODE AS OF 4-17-2019 2:35PM ***
+            On.LocalCharacterControl.UpdateInteraction += new On.LocalCharacterControl.hook_UpdateInteraction(LocalCharacterControl_UpdateInteractionHook);
+            // *** END NEW CODE ***
         }
 
         // *** Section for Hooks ***
+
+        // *** START NEW CODE -- 4-17-2019 2:35PM ***
+        private void LocalCharacterControl_UpdateInteractionHook(On.LocalCharacterControl.orig_UpdateInteraction orig, LocalCharacterControl localCharCtrl)
+        {
+            orig(localCharCtrl);
+
+            // Do nothing if input is locked
+            if (localCharCtrl.InputLocked)
+                return;
+
+            int playerID = localCharCtrl.Character.OwnerPlayerSys.PlayerID;
+
+            // Uses the name string argument from CustomKeybindings.AddAction()
+            if(CustomKeybindings.m_playerInputManager[playerID].GetButtonDown("Switch Quick Slot Bars"))
+            {
+                Debug.Log("Hello World!");
+            }
+        }
+        // *** END NEW CODE -- 4-17-2019 2:35PM ***
 
         private void PlayerSystem_StartHook(On.PlayerSystem.orig_Start orig, PlayerSystem self)
         {
