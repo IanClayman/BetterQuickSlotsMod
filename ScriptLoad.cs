@@ -53,12 +53,15 @@ namespace BetterQuickSlots
         public void Patch()
         {
             On.PlayerSystem.Start += new On.PlayerSystem.hook_Start(PlayerSystem_StartHook);
-            On.Character.Update += new On.Character.hook_Update(Character_UpdateHook);
+            // *** START ALTERED CODE AS OF 4-17-2019 4:45PM ***
+            // Alteration: following line commented out 
+            //On.Character.Update += new On.Character.hook_Update(Character_UpdateHook);
+            // *** END ALTERED CODE ***
 
             On.NetworkLevelLoader.LevelDoneLoading += new On.NetworkLevelLoader.hook_LevelDoneLoading(LevelDoneLoadingHook);
             On.CharacterQuickSlotManager.OnAssigningQuickSlot_1 += new On.CharacterQuickSlotManager.hook_OnAssigningQuickSlot_1(CQSManager_OnAssigningQuickSlotHook);
 
-            // *** NEW CODE AS OF 4-17-2019 2:35PM ***
+            // *** START NEW CODE AS OF 4-17-2019 2:35PM ***
             On.LocalCharacterControl.UpdateInteraction += new On.LocalCharacterControl.hook_UpdateInteraction(LocalCharacterControl_UpdateInteractionHook);
             // *** END NEW CODE ***
         }
@@ -75,11 +78,35 @@ namespace BetterQuickSlots
                 return;
 
             int playerID = localCharCtrl.Character.OwnerPlayerSys.PlayerID;
+            var quickSlotMngr = localCharCtrl.Character.QuickSlotMngr;
 
             // Uses the name string argument from CustomKeybindings.AddAction()
             if(CustomKeybindings.m_playerInputManager[playerID].GetButtonDown("Switch Quick Slot Bars"))
             {
-                Debug.Log("Hello World!");
+                //Debug.Log("Hello World!");
+
+                // If the current BarMode is FIRST...
+                if (barMode == BarMode.FIRST)
+                {
+                    if (dev)
+                        Debug.Log("Switching to SECOND skill bar");
+
+                    // Set barMode to SECOND
+                    SetBarMode(BarMode.SECOND);
+                    // And repopulate the default-behaviour skill bar w/ entries from quickSlots2[]
+                    PopulateSkillBar(quickSlotMngr);
+                }
+                // Else if the current BarMode is SECOND...
+                else if (barMode == BarMode.SECOND)
+                {
+                    if (dev)
+                        Debug.Log("Switching to FIRST skill bar");
+
+                    // Set barMode to FIRST
+                    SetBarMode(BarMode.FIRST);
+                    // And repopulate the default-behaviour skill bar w/ entries from quickSlots1[]
+                    PopulateSkillBar(quickSlotMngr);
+                }
             }
         }
         // *** END NEW CODE -- 4-17-2019 2:35PM ***
@@ -100,9 +127,12 @@ namespace BetterQuickSlots
             //Set local class variable charUID to the appropriate UID from PlayerSystem
             charUID = self.CharUID;
 
+            SetBarMode(BarMode.FIRST);
+
             // The following line fixes a bug where items in quickSlots2[] would get loaded in on top of
             // items loaded from quickSlots1[].  For this reason DO NOT REMOVE the following line without 
             // rigorously testing the impact on mod perfomance!
+            ClearSkillBar(self.ControlledCharacter.QuickSlotMngr);
             PopulateSkillBar(self.ControlledCharacter.QuickSlotMngr);
         }
 
@@ -153,8 +183,21 @@ namespace BetterQuickSlots
 
             Character character = CharacterManager.Instance.GetCharacter(charUID);
             var quickSlotManager = character.gameObject.GetComponent<CharacterQuickSlotManager>();
-            LoadBarEntriesFromJSON(quickSlotManager);
+            LoadQuickSlotArraysFromJSON(quickSlotManager);
+
+            SetBarMode(BarMode.FIRST);
+
+            ClearSkillBar(quickSlotManager);
             PopulateSkillBar(quickSlotManager);
+
+            // *** START NEW CODE -- 4-17-2019 10:00PM ***
+
+            // Testing code - can I gain access to a ControlInput component?
+            Debug.Log("Running TEST CODE in LevelDoneLoadingHook");
+            var foundOBJs = UnityEngine.Object.FindObjectsOfType<ControlsInput>();
+            Debug.Log("Found " + foundOBJs.Length + " instances of ControlsInput");
+            // This code yielded ZERO found instances
+            // *** END NEW CODE ***
         }
 
         private void CQSManager_OnAssigningQuickSlotHook(On.CharacterQuickSlotManager.orig_OnAssigningQuickSlot_1 orig, CharacterQuickSlotManager qsManager, Item _itemToQuickSlot)
@@ -178,7 +221,7 @@ namespace BetterQuickSlots
 
         // LoadBarEntriesFromJSON populates quickSlots1[] and quickSlots2[] using the data from
         // the modConfig file saved in betterQuickSlots
-        private void LoadBarEntriesFromJSON(CharacterQuickSlotManager qsManager)
+        private void LoadQuickSlotArraysFromJSON(CharacterQuickSlotManager qsManager)
         {
             CharacterInventory inventory = qsManager.gameObject.GetComponent<CharacterInventory>();
             CharacterSkillKnowledge knownSkills = inventory.SkillKnowledge;
@@ -310,6 +353,14 @@ namespace BetterQuickSlots
 
             }
 
+        }
+
+        private void ClearSkillBar(CharacterQuickSlotManager qsManager)
+        {
+            for (int i = 0; i < numSlots; i++)
+            {
+                qsManager.ClearQuickSlot(i);
+            }
         }
 
         private void SaveSkillSlotByIndex(int index, Item item)
