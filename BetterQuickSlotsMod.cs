@@ -90,10 +90,7 @@ namespace BetterQuickSlots
             // REQUIRED
             base.OnEnable();
 
-            // *** START NEW CODE -- 4-17-2019 2:35PM ***
-            // Attempting to add a keybind action
             CustomKeybindings.AddAction("Switch Quick Slot Bars", CustomKeybindings.KeybindingsCategory.Actions, true, 5, CustomKeybindings.InputActionType.Button);
-            // *** END NEW CODE -- 4-17-2019 2:35PM ***
 
             ScriptLoad.betterQuickSlots = this;
 

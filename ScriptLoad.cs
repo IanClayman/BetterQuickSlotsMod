@@ -53,22 +53,15 @@ namespace BetterQuickSlots
         public void Patch()
         {
             On.PlayerSystem.Start += new On.PlayerSystem.hook_Start(PlayerSystem_StartHook);
-            // *** START ALTERED CODE AS OF 4-17-2019 4:45PM ***
-            // Alteration: following line commented out 
-            //On.Character.Update += new On.Character.hook_Update(Character_UpdateHook);
-            // *** END ALTERED CODE ***
 
             On.NetworkLevelLoader.LevelDoneLoading += new On.NetworkLevelLoader.hook_LevelDoneLoading(LevelDoneLoadingHook);
             On.CharacterQuickSlotManager.OnAssigningQuickSlot_1 += new On.CharacterQuickSlotManager.hook_OnAssigningQuickSlot_1(CQSManager_OnAssigningQuickSlotHook);
 
-            // *** START NEW CODE AS OF 4-17-2019 2:35PM ***
             On.LocalCharacterControl.UpdateInteraction += new On.LocalCharacterControl.hook_UpdateInteraction(LocalCharacterControl_UpdateInteractionHook);
-            // *** END NEW CODE ***
         }
 
         // *** Section for Hooks ***
 
-        // *** START NEW CODE -- 4-17-2019 2:35PM ***
         private void LocalCharacterControl_UpdateInteractionHook(On.LocalCharacterControl.orig_UpdateInteraction orig, LocalCharacterControl localCharCtrl)
         {
             orig(localCharCtrl);
@@ -80,8 +73,11 @@ namespace BetterQuickSlots
             int playerID = localCharCtrl.Character.OwnerPlayerSys.PlayerID;
             var quickSlotMngr = localCharCtrl.Character.QuickSlotMngr;
 
+            // LINE ADDED TO CHECK IF HOLDING LT or RT
+            bool quickslotToggledFlag = ControlsInput.QuickSlotToggled(playerID);
+
             // Uses the name string argument from CustomKeybindings.AddAction()
-            if(CustomKeybindings.m_playerInputManager[playerID].GetButtonDown("Switch Quick Slot Bars"))
+            if(!quickslotToggledFlag && CustomKeybindings.m_playerInputManager[playerID].GetButtonDown("Switch Quick Slot Bars"))
             {
                 //Debug.Log("Hello World!");
 
@@ -109,7 +105,6 @@ namespace BetterQuickSlots
                 }
             }
         }
-        // *** END NEW CODE -- 4-17-2019 2:35PM ***
 
         private void PlayerSystem_StartHook(On.PlayerSystem.orig_Start orig, PlayerSystem self)
         {
@@ -136,6 +131,7 @@ namespace BetterQuickSlots
             PopulateSkillBar(self.ControlledCharacter.QuickSlotMngr);
         }
 
+        // DEPRECATED: Now using LocalCharacterControl_UpdateInteraction instead
         private void Character_UpdateHook(On.Character.orig_Update orig, Character self)
         {
             orig(self);
@@ -189,15 +185,6 @@ namespace BetterQuickSlots
 
             ClearSkillBar(quickSlotManager);
             PopulateSkillBar(quickSlotManager);
-
-            // *** START NEW CODE -- 4-17-2019 10:00PM ***
-
-            // Testing code - can I gain access to a ControlInput component?
-            Debug.Log("Running TEST CODE in LevelDoneLoadingHook");
-            var foundOBJs = UnityEngine.Object.FindObjectsOfType<ControlsInput>();
-            Debug.Log("Found " + foundOBJs.Length + " instances of ControlsInput");
-            // This code yielded ZERO found instances
-            // *** END NEW CODE ***
         }
 
         private void CQSManager_OnAssigningQuickSlotHook(On.CharacterQuickSlotManager.orig_OnAssigningQuickSlot_1 orig, CharacterQuickSlotManager qsManager, Item _itemToQuickSlot)
