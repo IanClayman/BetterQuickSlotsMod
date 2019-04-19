@@ -11,6 +11,8 @@ List of known bugs / yet-to-be-implemented features:
 	- requsting ControlsInput.QuickslotToggled(playerID) from LocalCharacterControls will get a bool that checks if LT or RT is pressed
 	- doing so fixes the above issue on controllers only!  Problem persists on keyboard + mouse if, for instance, a quickslot is bound to AlphaNum4 and 
 		switching btw bars is also bound to AlphaNum4 (quickslot will be activated AND bars will be switched)
+	- Potential solution: check if key assigned to use ControlsInput.QuickSlotInstant# == key assigned to "switch quick slot bars".  If so, and that key is pressed, ONLY fire the quickslot
+		(and not the quickslot bar switch)
 
 - BUG: items in quickSlots2 will overwrite items in quickSlots1 [SOLVED]
 	- Seems to be caused by exiting the game with quickSlot2 active
