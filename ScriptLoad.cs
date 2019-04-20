@@ -73,35 +73,38 @@ namespace BetterQuickSlots
             int playerID = localCharCtrl.Character.OwnerPlayerSys.PlayerID;
             var quickSlotMngr = localCharCtrl.Character.QuickSlotMngr;
 
-            // LINE ADDED TO CHECK IF HOLDING LT or RT
-            bool quickslotToggledFlag = ControlsInput.QuickSlotToggled(playerID);
+            // AnyQuickSlotUsed checks if a quickslot is being activated
+            bool quickSlotActivated = AnyQuickSlotUsed(playerID);
 
             // Uses the name string argument from CustomKeybindings.AddAction()
-            if(!quickslotToggledFlag && CustomKeybindings.m_playerInputManager[playerID].GetButtonDown("Switch Quick Slot Bars"))
+            // If a quickslot is NOT being used...
+            if(!quickSlotActivated)
             {
-                //Debug.Log("Hello World!");
-
-                // If the current BarMode is FIRST...
-                if (barMode == BarMode.FIRST)
+                // ...and you actually press the button assigned to "switch quick slot bars...
+                if (CustomKeybindings.m_playerInputManager[playerID].GetButtonDown("Switch Quick Slot Bars"))
                 {
-                    if (dev)
-                        Debug.Log("Switching to SECOND skill bar");
+                    // If the current BarMode is FIRST...
+                    if (barMode == BarMode.FIRST)
+                    {
+                        if (dev)
+                            Debug.Log("Switching to SECOND skill bar");
 
-                    // Set barMode to SECOND
-                    SetBarMode(BarMode.SECOND);
-                    // And repopulate the default-behaviour skill bar w/ entries from quickSlots2[]
-                    PopulateSkillBar(quickSlotMngr);
-                }
-                // Else if the current BarMode is SECOND...
-                else if (barMode == BarMode.SECOND)
-                {
-                    if (dev)
-                        Debug.Log("Switching to FIRST skill bar");
+                        // Set barMode to SECOND
+                        SetBarMode(BarMode.SECOND);
+                        // And repopulate the default-behaviour skill bar w/ entries from quickSlots2[]
+                        PopulateSkillBar(quickSlotMngr);
+                    }
+                    // Else if the current BarMode is SECOND...
+                    else if (barMode == BarMode.SECOND)
+                    {
+                        if (dev)
+                            Debug.Log("Switching to FIRST skill bar");
 
-                    // Set barMode to FIRST
-                    SetBarMode(BarMode.FIRST);
-                    // And repopulate the default-behaviour skill bar w/ entries from quickSlots1[]
-                    PopulateSkillBar(quickSlotMngr);
+                        // Set barMode to FIRST
+                        SetBarMode(BarMode.FIRST);
+                        // And repopulate the default-behaviour skill bar w/ entries from quickSlots1[]
+                        PopulateSkillBar(quickSlotMngr);
+                    }
                 }
             }
         }
@@ -122,13 +125,13 @@ namespace BetterQuickSlots
             //Set local class variable charUID to the appropriate UID from PlayerSystem
             charUID = self.CharUID;
 
-            SetBarMode(BarMode.FIRST);
-
             // The following line fixes a bug where items in quickSlots2[] would get loaded in on top of
             // items loaded from quickSlots1[].  For this reason DO NOT REMOVE the following line without 
             // rigorously testing the impact on mod perfomance!
-            ClearSkillBar(self.ControlledCharacter.QuickSlotMngr);
-            PopulateSkillBar(self.ControlledCharacter.QuickSlotMngr);
+
+            //ClearSkillBar(self.ControlledCharacter.QuickSlotMngr);
+            //SetBarMode(BarMode.FIRST);
+            //PopulateSkillBar(self.ControlledCharacter.QuickSlotMngr);
         }
 
         // DEPRECATED: Now using LocalCharacterControl_UpdateInteraction instead
@@ -181,9 +184,8 @@ namespace BetterQuickSlots
             var quickSlotManager = character.gameObject.GetComponent<CharacterQuickSlotManager>();
             LoadQuickSlotArraysFromJSON(quickSlotManager);
 
+            //ClearSkillBar(quickSlotManager);
             SetBarMode(BarMode.FIRST);
-
-            ClearSkillBar(quickSlotManager);
             PopulateSkillBar(quickSlotManager);
         }
 
@@ -283,6 +285,8 @@ namespace BetterQuickSlots
         {
             if (qsManager.isActiveAndEnabled)
             {
+                ClearSkillBar(qsManager);
+
                 if (dev)
                     Debug.Log("Populating Skill Bar");
 
@@ -375,6 +379,13 @@ namespace BetterQuickSlots
             }
 
             betterQuickSlots.SaveConfig();
+        }
+
+        private bool AnyQuickSlotUsed(int playerID)
+        {
+            return ( ControlsInput.QuickSlotInstant1(playerID) || ControlsInput.QuickSlotInstant2(playerID) || ControlsInput.QuickSlotInstant3(playerID) ||
+                ControlsInput.QuickSlotInstant4(playerID) || ControlsInput.QuickSlotInstant5(playerID) || ControlsInput.QuickSlotInstant6(playerID) ||
+                ControlsInput.QuickSlotInstant7(playerID) || ControlsInput.QuickSlotInstant8(playerID) );
         }
 
         private void SetBarMode(BarMode bm)
