@@ -18,8 +18,8 @@ namespace BetterQuickSlots
         // Item arrays to use as temp storage for skills and items
         // These are specicically item arrays b/c Outward treats skills as Items
         // ( obviously items are also treated as Items :P )
-        public Item[] quickSlots1;
-        public Item[] quickSlots2;
+        public int[] quickSlots1;
+        public int[] quickSlots2;
 
         // ***UPDATE DESCRIPTION ONCE I FIGURE OUT WHAT THESE DO***
         //    (unused in current implementation of code)
@@ -58,9 +58,26 @@ namespace BetterQuickSlots
             On.CharacterQuickSlotManager.OnAssigningQuickSlot_1 += new On.CharacterQuickSlotManager.hook_OnAssigningQuickSlot_1(CQSManager_OnAssigningQuickSlotHook);
 
             On.LocalCharacterControl.UpdateInteraction += new On.LocalCharacterControl.hook_UpdateInteraction(LocalCharacterControl_UpdateInteractionHook);
+
+            // Required to fix bug where quitting to main menu while on quickslot bar 2 and loading back in would cause improper loading of skills
+            // (quickslot bar 2 skills would "overwrite" quickslot bar 1 skills)
+            On.MenuManager.BackToMainMenu += new On.MenuManager.hook_BackToMainMenu(MenuManager_BackToMainMenuHook);
         }
 
         // *** Section for Hooks ***
+
+        // Provides fix for bug describes above (see Patch() --> On.MenuManager.BackToMainMenu()
+        // Fix provided by setting Bar Mode back to FIRST and repopulating default behaviour skill bar, then quitting to menu
+        private void MenuManager_BackToMainMenuHook(On.MenuManager.orig_BackToMainMenu orig, MenuManager menuMngr)
+        {
+            var character = CharacterManager.Instance.GetCharacter(charUID);
+            var qsManager = character.gameObject.GetComponent<CharacterQuickSlotManager>();
+
+            SetBarMode(BarMode.FIRST);
+            PopulateSkillBar(qsManager);
+
+            orig(menuMngr);
+        }
 
         private void LocalCharacterControl_UpdateInteractionHook(On.LocalCharacterControl.orig_UpdateInteraction orig, LocalCharacterControl localCharCtrl)
         {
@@ -117,19 +134,14 @@ namespace BetterQuickSlots
             // call LoadConfig() method from betterQuickSlotsMod class
             betterQuickSlots.LoadConfig();
 
-            quickSlots1 = new Item[8];
-            quickSlots2 = new Item[8];
+            quickSlots1 = new int[8];
+            quickSlots2 = new int[8];
 
             betterQuickSlots.SetCurrentCharacter(self.CharUID, self.Name);
 
             //Set local class variable charUID to the appropriate UID from PlayerSystem
             charUID = self.CharUID;
 
-            // The following line fixes a bug where items in quickSlots2[] would get loaded in on top of
-            // items loaded from quickSlots1[].  For this reason DO NOT REMOVE the following line without 
-            // rigorously testing the impact on mod perfomance!
-
-            //ClearSkillBar(self.ControlledCharacter.QuickSlotMngr);
             //SetBarMode(BarMode.FIRST);
             //PopulateSkillBar(self.ControlledCharacter.QuickSlotMngr);
         }
@@ -176,10 +188,6 @@ namespace BetterQuickSlots
         {
             orig(self);
 
-            //Debug.Log(System.DateTime.Now.ToShortTimeString() + " || Running LevelDoneLoadingHook");
-            //Character character = CharacterManager.Instance.GetCharacter(CharacterManager.Instance.PlayerCharacters.Values[0]);
-            //Debug.Log("Character Name: " + character.Name);
-
             Character character = CharacterManager.Instance.GetCharacter(charUID);
             var quickSlotManager = character.gameObject.GetComponent<CharacterQuickSlotManager>();
             LoadQuickSlotArraysFromJSON(quickSlotManager);
@@ -222,29 +230,7 @@ namespace BetterQuickSlots
                 if (dev)
                     Debug.Log("LOADING SKILLBAR SLOT " + i + "FOR 1ST BAR");
 
-                var entryUID = betterQuickSlots.currentCharacter["FirstBarUIDs"][i];
-
-                // If there is actually a skill/item stored at the index being looked at in FirstBarUIDs[]...
-                if (entryUID != 0)
-                {
-                    if (dev)
-                        Debug.Log("UID of skill/item is : " + entryUID);
-
-                    // This line loads a skill into the variable called "entry"...
-                    var entry = knownSkills.GetItemFromItemID(entryUID.AsInt);
-
-                    // ...But if "entry" isn't a skill, load an item instead
-                    if (entry == null)
-                        entry = inventory.GetOwnedItems(entryUID).First();
-
-                    quickSlots1[i] = entry;
-                }
-                // If there isn't a skill/item stored at the index being looked at in FirstBarUIDs[]...
-                else
-                {
-                    if (dev)
-                        Debug.Log("Skill bar slot " + i + " has no assigned skill/item");
-                }
+                quickSlots1[i] = betterQuickSlots.currentCharacter["FirstBarUIDs"][i];
             }
 
             // Load items and skills into quickSlots2[]
@@ -253,29 +239,7 @@ namespace BetterQuickSlots
                 if (dev)
                     Debug.Log("LOADING SKILLBAR SLOT " + i + "FOR 2ND BAR");
 
-                var entryUID = betterQuickSlots.currentCharacter["SecondBarUIDs"][i];
-
-                // If there is actually a skill/item stored at the index being looked at in SecondBarUIDs[]...
-                if (entryUID != 0)
-                {
-                    if (dev)
-                        Debug.Log("UID of skill/item is : " + entryUID);
-
-                    // This line loads a skill into the variable called "entry"...
-                    var entry = knownSkills.GetItemFromItemID(entryUID.AsInt);
-
-                    // ...But if "entry" isn't a skill, load an item instead
-                    if (entry == null)
-                        entry = inventory.GetOwnedItems(entryUID).First();
-
-                    quickSlots2[i] = entry;
-                }
-                // If there isn't a skill/item stored at the index being looked at in SecondBarUIDs[]...
-                else
-                {
-                    if (dev)
-                        Debug.Log("Skill bar slot " + i + " has no assigned skill/item");
-                }
+                quickSlots2[i] = betterQuickSlots.currentCharacter["SecondBarUIDs"][i];
             }
         }
 
@@ -285,7 +249,9 @@ namespace BetterQuickSlots
         {
             if (qsManager.isActiveAndEnabled)
             {
-                ClearSkillBar(qsManager);
+                CharacterInventory inventory = qsManager.gameObject.GetComponent<CharacterInventory>();
+                CharacterSkillKnowledge knownSkills = inventory.SkillKnowledge;
+                ItemManager itemManager = ItemManager.Instance;
 
                 if (dev)
                     Debug.Log("Populating Skill Bar");
@@ -296,22 +262,22 @@ namespace BetterQuickSlots
                 {
                     // In the case where we want entries from the first skill bar...
                     case BarMode.FIRST:
+                        ClearSkillBar(qsManager);
+
                         for (int i = 0; i < numSlots; i++)
                         {
-                            // If the entry we want to add to the skill bar is actually exists...
-                            if (quickSlots1[i] != null)
+                            if (quickSlots1[i] != 0)
                             {
-                                if (dev)
-                                    Debug.Log("Populating skillbar slot " + i + " with entry " + quickSlots1[i]);
-                                // Actually assign the entry to the corresponding slot
-                                qsManager.SetQuickSlot(i, quickSlots1[i], false);
-                            }
-                            // If the entry to add to the skill bar DOESN'T exist...
-                            else
+                                // This line loads a skill into the variable called "entry"...
+                                var entry = knownSkills.GetItemFromItemID(quickSlots1[i]);
+
+                                // ...But if "entry" isn't a skill, load an item instead
+                                if (entry == null)
+                                    entry = inventory.GetOwnedItems(quickSlots1[i]).First();
+
+                                qsManager.SetQuickSlot(i, entry, false);
+                            } else
                             {
-                                if (dev)
-                                    Debug.Log("No assignable entry.  Clearing slot");
-                                // Clear the slot
                                 qsManager.ClearQuickSlot(i);
                             }
                         }
@@ -319,22 +285,23 @@ namespace BetterQuickSlots
                         break;
                     // In the case where we want to add entries from the second skill bar...
                     case BarMode.SECOND:
+                        ClearSkillBar(qsManager);
+
                         for (int i = 0; i < numSlots; i++)
                         {
-                            // If the entry we want to add to the skill bar is actually exists...
-                            if (quickSlots2[i] != null)
+                            if (quickSlots2[i] != 0)
                             {
-                                if (dev)
-                                    Debug.Log("Populating skillbar slot " + i + " with entry " + quickSlots2[i]);
-                                // Actually assign the entry to the corresponding slot
-                                qsManager.SetQuickSlot(i, quickSlots2[i], false);
+                                // This line loads a skill into the variable called "entry"...
+                                var entry = knownSkills.GetItemFromItemID(quickSlots2[i]);
+
+                                // ...But if "entry" isn't a skill, load an item instead
+                                if (entry == null)
+                                    entry = inventory.GetOwnedItems(quickSlots2[i]).First();
+
+                                qsManager.SetQuickSlot(i, entry, false);
                             }
-                            // If the entry to add to the skill bar DOESN'T exist...
                             else
                             {
-                                if (dev)
-                                    Debug.Log("No assignable entry.  Clearing slot");
-                                // Clear the slot
                                 qsManager.ClearQuickSlot(i);
                             }
                         }
@@ -363,7 +330,7 @@ namespace BetterQuickSlots
                     if (dev)
                         Debug.Log("Setting quickSlots1[" + index + "] to " + item);
 
-                    quickSlots1[index] = item;
+                    quickSlots1[index] = item.ItemID;
                     betterQuickSlots.currentCharacter["FirstBarUIDs"][index] = item.ItemID;
 
                     break;
@@ -372,7 +339,7 @@ namespace BetterQuickSlots
                     if (dev)
                         Debug.Log("Setting quickSlots2[" + index + "] to " + item);
 
-                    quickSlots2[index] = item;
+                    quickSlots2[index] = item.ItemID;
                     betterQuickSlots.currentCharacter["SecondBarUIDs"][index] = item.ItemID;
 
                     break;
