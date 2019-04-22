@@ -1,29 +1,37 @@
 # BetterQuickSlotsMod
 
-List of known bugs / yet-to-be-implemented features:
+## What Is It?
+Better Quick Slots is a mod that does exactly what the name says: it gives you better quick slots.  Installing this mod will give you the benefit of a second quick slot bar where you can assign skills and
+items just like you normally would, doubling the total number of available quick slots from eight to sixteen.
 
-- BUG: Finishing a stack of consummables
-	- Using the last of a stack of consummable items, then switching away and back to its assigned bar causes a bug that prevents that item and all subsequent quickslots from loading
-	- Debug error message says that the operation cannot be completed - Lesson: if quickslot linked to quickSlots#[i] fails to load then all quickslots with index > i will also fail to load
+Switching between the quick slot bars is as easy as setting up a keybinding using the in-game menus - no editing of .config files required!  Both keyboards and controllers are fully supported, and switching between
+bars causes no lag or stuttering of any kind.
 
-- BUG:Free Slot functionality does not actually free the quick slot
-	- (Quick slot will be repopulated upon switching away from, and then back to, the current quick slot bar)
-	
-- BUG: Using CustomKeybindings, inconsistent behaviour [SOLVED]
-	- If a quick slot is bound to RT+Y and switch bars is bound to Y, pressing Y in a menu will not switch bars.  However, pressing RT+Y
-		will activate the assigned Item AND switch quick slot bars
-	- Similarly, if a quickslot is bound to AlphaNum4 and switching btw bars is also bound to AlphaNum4 the quickslot will be activated AND bars will be switched
-	- Implemented solution: check if input used to activate any quickslot is being pressed.  If so, do not fire the quickslot bar switch
+## Currently-Implemented Features
+- Two quick slot bars with eight quick slots each for a total of 16 assignable quick slots
+- In-game assignment of keybindings
 
-- BUG: items in quickSlots2 will overwrite items in quickSlots1 [SOLVED]
-	- Seems to be caused by exiting the game with quickSlot2 active
-	- Implemented solution: 1) Set BarMode to FIRST 2) Clear default behaviour quick bar 3) Load in quick slots from temp array
-	
-- BUG: using a consummable item assigned to a quickslot and then switch between bars causes the assigned item to disappear [SOLVED]
-	- This doesn't affect the JSON arrays (reloading the game after this disappearance results in the disappeared item showing up correctly
-	- Also doesn't affect non-consummable items (putting a weapon in the quickslot, using the assigned button and switching bars results in the weapon still showing up properly
-		upon switching back)
-	-Implemented solution: Changed quickSlots1 and quickSlots2 from Item[] -> int[].  Rewrote LoadQuickSlotArraysFromJSON() and PopulateSkillBar() to accomodate this change.
-		By actually reading in items in PopulateSkillBar instead of LoadQuickSlotArraysFromJSON the assignment of a stack of consummables will always find its target, because the call to
-		inventory.GetOwnedItems(quickSlots#[i]).First() will find the UID of the "next" first item as opposed to the already-used first item
+## Yet-To-Be-Implemented Features
+- Non-destructive implementation: future releases of Better Quick Slots will work seamlessly with other quick slot mods such as Extended Quickslots (https://www.nexusmods.com/outward/mods/41)
+	- Controller implementation will be locked to a maximum of eight quick slots onscreen at any one time due to built-in limitations in Outward, but you will be able to create as many quick slots as you'd like
+		and cycle through as many sets of eight as you have assigned.  In keyboard mode the only limit will be how many slots can fit on your screen!
+- Set display: sets of quick slots will be named, allowing you to tell at a glance what set you are currently using
+- Custom set naming: Once the displaying of set names is implemented I will try to allow custom namming of sets (for example, you'll be able to have one set called "Ranged Skills" and another called "Melee Skills)
+
+## How To Install
+1. Download Partiality Launcher﻿
+2. Unzip PartialityLauncher.zip & open PartialityLauncher.bat
+3. In Partiality Launcher click File, Open Game & find Outward.exe (normally C:\Program Files (x86)\Steam\steamapps\common\Outward)
+4. Now you have a new folder called Mods where Outward.exe is
+	4b. (Optional) If the "APPID of the game" is empty, put 794260 (Outward's Steam AppID)
+5. Put your mod's .dll file in the Mods folder
+6. In Partiality Launcher click Refresh Mod List
+7. Tick your .dll file
+8. Click Apply Mods
+9. Done!
+
+## Credits
+Thank you to Emo for his original mod concept and permission to use his project as a basis (https://www.nexusmods.com/outward/mods/18)
+
+Thanks go out to Stian and Ashnal as well for all their help teaching me the ins and outs of Outward modding, and especially to Stian for permission to use the Custom Keybindings project (https://www.nexusmods.com/outward/mods/45)
 

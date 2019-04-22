@@ -56,7 +56,7 @@ namespace BetterQuickSlots
         public BetterQuickSlotsMod()
         {
             this.ModID = "\"Better Quick Slots Mod\"";
-            this.Version = "0.1";
+            this.Version = "1.0";
             //this.loadPriority = 0;
             this.author = "IAmTheClayman";
         }
