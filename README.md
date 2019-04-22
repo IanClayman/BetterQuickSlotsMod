@@ -16,7 +16,7 @@ bars causes no lag or stuttering of any kind.
 	- Controller implementation will be locked to a maximum of eight quick slots onscreen at any one time due to built-in limitations in Outward, but you will be able to create as many quick slots as you'd like
 		and cycle through as many sets of eight as you have assigned.  In keyboard mode the only limit will be how many slots can fit on your screen!
 - Set display: sets of quick slots will be named, allowing you to tell at a glance what set you are currently using
-- Custom set naming: Once the displaying of set names is implemented I will try to allow custom namming of sets (for example, you'll be able to have one set called "Ranged Skills" and another called "Melee Skills)
+- Custom set naming: Once the displaying of set names is implemented I will try to allow custom naming of sets (for example, you'll be able to have one set called "Ranged Skills" and another called "Melee Skills)
 
 ## How To Install
 1. Download Partiality Launcher﻿
