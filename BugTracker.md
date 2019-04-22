@@ -28,4 +28,14 @@
 		By actually reading in items in PopulateSkillBar instead of LoadQuickSlotArraysFromJSON the assignment of a stack of consummables will always find its target, because the call to
 		inventory.GetOwnedItems(quickSlots#[i]).First() will find the UID of the "next" first item as opposed to the already-used first item
 		
-#Persisting Bugs
+#Unsolved Bugs
+
+- Fix BetterQuickSlotsMod.cs line 109 (AND line 47)
+	- by declaring the string path of the config file to be Mods\BetterQuickSlots_Config.json it ignores the possibility that the name of the folder where mods exist is not "Mods\"
+	- for example, BepInEx stores mods in the folder ...\Outward\BepInEx\plugins\
+
+- Multiplayer issue
+	- As reported by MrPig#2647: "when a friend joins and you tab to your other bar it deletes both of ya bars and ya gotta reset em"
+	- "once there in the game and you reset em they dont go away"
+	- Current code seems to detect any time there's a "new" character in the lobby (aka character who doesn't have an entry in the config file).  If it does, it resets the quickslots of all players with the mod, 
+		regardless of whether how many people have the mod installed and if the "new" player has the mod or not
