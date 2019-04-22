@@ -23,7 +23,7 @@ bars causes no lag or stuttering of any kind.
 2. Unzip PartialityLauncher.zip & open PartialityLauncher.bat
 3. In Partiality Launcher click File, Open Game & find Outward.exe (normally C:\Program Files (x86)\Steam\steamapps\common\Outward)
 4. Now you have a new folder called Mods where Outward.exe is
-	4b. (Optional) If the "APPID of the game" is empty, put 794260 (Outward's Steam AppID)
+	- (Optional) If the "APPID of the game" is empty, put 794260 (Outward's Steam AppID)
 5. Put your mod's .dll file in the Mods folder
 6. In Partiality Launcher click Refresh Mod List
 7. Tick your .dll file
