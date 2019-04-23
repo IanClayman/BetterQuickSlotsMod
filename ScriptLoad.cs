@@ -166,44 +166,6 @@ namespace BetterQuickSlots
             PopulateSkillBar(self.ControlledCharacter.QuickSlotMngr);
         }
 
-        // DEPRECATED: Now using LocalCharacterControl_UpdateInteraction instead
-        private void Character_UpdateHook(On.Character.orig_Update orig, Character self)
-        {
-            orig(self);
-            var quickSlotManager = self.GetComponent<CharacterQuickSlotManager>();
-
-            if (quickSlotManager != null)
-            {
-                // First we check if the button assigned to keybind (aka the button to switch 
-                // btw skill bars) has actually been pressed
-                if (Input.GetKeyDown(betterQuickSlots.currentCharacter["keybind"]))
-                {
-                    // If the current BarMode is FIRST...
-                    if (barMode == BarMode.FIRST)
-                    {
-                        if (dev)
-                            Debug.Log("Switching to SECOND skill bar");
-
-                        // Set barMode to SECOND
-                        SetBarMode(BarMode.SECOND);
-                        // And repopulate the default-behaviour skill bar w/ entries from quickSlots2[]
-                        PopulateSkillBar(quickSlotManager);
-                    }
-                    // Else if the current BarMode is SECOND...
-                    else if (barMode == BarMode.SECOND)
-                    {
-                        if (dev)
-                            Debug.Log("Switching to FIRST skill bar");
-
-                        // Set barMode to FIRST
-                        SetBarMode(BarMode.FIRST);
-                        // And repopulate the default-behaviour skill bar w/ entries from quickSlots1[]
-                        PopulateSkillBar(quickSlotManager);
-                    }
-                }
-            }
-        }
-
         private void LevelDoneLoadingHook(On.NetworkLevelLoader.orig_LevelDoneLoading orig, NetworkLevelLoader self)
         {
             orig(self);
@@ -250,7 +212,7 @@ namespace BetterQuickSlots
                 if (dev)
                     Debug.Log("LOADING SKILLBAR SLOT " + i + "FOR 1ST BAR");
 
-                quickSlots1[i] = betterQuickSlots.currentCharacter["FirstBarUIDs"][i];
+                quickSlots1[i] = betterQuickSlots.currentCharacter["FirstBarIDs"][i];
             }
 
             // Load items and skills into quickSlots2[]
@@ -259,7 +221,7 @@ namespace BetterQuickSlots
                 if (dev)
                     Debug.Log("LOADING SKILLBAR SLOT " + i + "FOR 2ND BAR");
 
-                quickSlots2[i] = betterQuickSlots.currentCharacter["SecondBarUIDs"][i];
+                quickSlots2[i] = betterQuickSlots.currentCharacter["SecondBarIDs"][i];
             }
         }
 
@@ -362,7 +324,7 @@ namespace BetterQuickSlots
                         Debug.Log("Setting quickSlots1[" + index + "] to " + item);
 
                     quickSlots1[index] = item.ItemID;
-                    betterQuickSlots.currentCharacter["FirstBarUIDs"][index] = item.ItemID;
+                    betterQuickSlots.currentCharacter["FirstBarIDs"][index] = item.ItemID;
 
                     break;
 
@@ -371,7 +333,7 @@ namespace BetterQuickSlots
                         Debug.Log("Setting quickSlots2[" + index + "] to " + item);
 
                     quickSlots2[index] = item.ItemID;
-                    betterQuickSlots.currentCharacter["SecondBarUIDs"][index] = item.ItemID;
+                    betterQuickSlots.currentCharacter["SecondBarIDs"][index] = item.ItemID;
 
                     break;
             }
@@ -384,13 +346,13 @@ namespace BetterQuickSlots
             switch (barMode) {
                 case BarMode.FIRST:
                     quickSlots1[index] = 0;
-                    betterQuickSlots.currentCharacter["FirstBarUIDs"][index] = 0;
+                    betterQuickSlots.currentCharacter["FirstBarIDs"][index] = 0;
 
                     break;
 
                 case BarMode.SECOND:
                     quickSlots2[index] = 0;
-                    betterQuickSlots.currentCharacter["SecondBarUIDs"][index] = 0;
+                    betterQuickSlots.currentCharacter["SecondBarIDs"][index] = 0;
 
                     break;
             }

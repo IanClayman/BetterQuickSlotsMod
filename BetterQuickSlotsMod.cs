@@ -176,35 +176,33 @@ namespace BetterQuickSlots
             // Start adding default values to new character's JSONObject
             var jsonCharUID = new JSONString(charUID);
             var jsonCharName = new JSONString(charName);
-            var jsonDefaultKeybind = new JSONString("tab");
-            var jsonFirstBarUIDs = new JSONArray();
+            var jsonFirstBarIDs = new JSONArray();
 
-            jsonFirstBarUIDs[0] = 0;
-            jsonFirstBarUIDs[1] = 0;
-            jsonFirstBarUIDs[2] = 0;
-            jsonFirstBarUIDs[3] = 0;
-            jsonFirstBarUIDs[4] = 0;
-            jsonFirstBarUIDs[5] = 0;
-            jsonFirstBarUIDs[6] = 0;
-            jsonFirstBarUIDs[7] = 0;
+            jsonFirstBarIDs[0] = 0;
+            jsonFirstBarIDs[1] = 0;
+            jsonFirstBarIDs[2] = 0;
+            jsonFirstBarIDs[3] = 0;
+            jsonFirstBarIDs[4] = 0;
+            jsonFirstBarIDs[5] = 0;
+            jsonFirstBarIDs[6] = 0;
+            jsonFirstBarIDs[7] = 0;
 
-            var jsonSecondBarUIDs = new JSONArray();
+            var jsonSecondBarIDs = new JSONArray();
 
-            jsonSecondBarUIDs[0] = 0;
-            jsonSecondBarUIDs[1] = 0;
-            jsonSecondBarUIDs[2] = 0;
-            jsonSecondBarUIDs[3] = 0;
-            jsonSecondBarUIDs[4] = 0;
-            jsonSecondBarUIDs[5] = 0;
-            jsonSecondBarUIDs[6] = 0;
-            jsonSecondBarUIDs[7] = 0;
+            jsonSecondBarIDs[0] = 0;
+            jsonSecondBarIDs[1] = 0;
+            jsonSecondBarIDs[2] = 0;
+            jsonSecondBarIDs[3] = 0;
+            jsonSecondBarIDs[4] = 0;
+            jsonSecondBarIDs[5] = 0;
+            jsonSecondBarIDs[6] = 0;
+            jsonSecondBarIDs[7] = 0;
 
             // Now we begin assigning these values to the newly created JSONObject
             newCharOBJ.Add("characterUID", jsonCharUID);
             newCharOBJ.Add("characterName", jsonCharName);
-            newCharOBJ.Add("keybind", jsonDefaultKeybind);
-            newCharOBJ.Add("FirstBarUIDs", jsonFirstBarUIDs);
-            newCharOBJ.Add("SecondBarUIDs", jsonSecondBarUIDs);
+            newCharOBJ.Add("FirstBarIDs", jsonFirstBarIDs);
+            newCharOBJ.Add("SecondBarIDs", jsonSecondBarIDs);
 
             return newCharOBJ;
         }
@@ -220,7 +218,7 @@ namespace BetterQuickSlots
     public class ModConfig
     {
         public string SwitchKeybinding;
-        public int[] firstBarUIDs;
-        public int[] secondBarUIDs;
+        public int[] firstBarIDs;
+        public int[] secondBarIDs;
     }
 }
