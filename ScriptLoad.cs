@@ -11,6 +11,8 @@ namespace BetterQuickSlots
 {
     public class ScriptLoad : MonoBehaviour
     {
+        // ADDED: Goal is to use this dictionary to link character ID to [quickSlots1, quickSlots2]
+        Dictionary<string, int[,]> charQuickSlotArrays = new Dictionary<string, int[,]>();
 
         // allows us to call and access methods in the betterQuickSlotsMod class (inherits from PartialityMod)
         public static BetterQuickSlotsMod betterQuickSlots;
@@ -120,6 +122,8 @@ namespace BetterQuickSlots
                 // ...and you actually press the button assigned to "switch quick slot bars...
                 if (CustomKeybindings.m_playerInputManager[playerID].GetButtonDown("Switch Quick Slot Bars"))
                 {
+                    Debug.Log("localCharacterControl character = " + localCharCtrl.Character.UID + " | " + localCharCtrl.Character.Name);
+
                     // If the current BarMode is FIRST...
                     if (barMode == BarMode.FIRST)
                     {

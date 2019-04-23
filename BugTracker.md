@@ -39,3 +39,11 @@
 	- "once there in the game and you reset em they dont go away"
 	- Current code seems to detect any time there's a "new" character in the lobby (aka character who doesn't have an entry in the config file).  If it does, it resets the quickslots of all players with the mod, 
 		regardless of whether how many people have the mod installed and if the "new" player has the mod or not
+
+- Local multiplayer bug
+	- Reported by Shoe#6966: "So when I assign a hotkey everything will look normal to her, but if she cycles her hotkey bars suddenly the one she was just looking at will update to reflect 
+		the change I just made to my characters quickslots"
+	- Theory: has to do with where charUID is set in PlayerSystem.Start().  The quickslots for that player will be assigned when any player goes to switch between bars
+		
+		
+{"characters":[{"characterUID":"NJsukNThOk6LRDUzLe9BVg","characterName":"Garruk","FirstBarIDs":[8100070,8100360,8100071,8100350,8200120,0,0,5100000],"SecondBarIDs":[4400010,4300110,4200040,4300010,0,0,0,0]}]}
