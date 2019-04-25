@@ -11,22 +11,15 @@ namespace BetterQuickSlots
 {
     public class ScriptLoad : MonoBehaviour
     {
-        // ADDED: Goal is to use this dictionary to link character ID to [quickSlots1, quickSlots2]
-        Dictionary<string, int[,]> charQuickSlotArrays = new Dictionary<string, int[,]>();
+        // This dictionary is used to link a character ID to a 2D array of size 2x8
+        // [charID][0][i] = quickSlots1[i] for character with UID charID
+        // [charID][1][i] = quickSlots2[i] for character with UID charID
+        public Dictionary<string, int[,]> charQuickSlotArrays = new Dictionary<string, int[,]>();
+
+        public Dictionary<string, BarMode> charCurrentBarMode = new Dictionary<string, BarMode>();
 
         // allows us to call and access methods in the betterQuickSlotsMod class (inherits from PartialityMod)
         public static BetterQuickSlotsMod betterQuickSlots;
-
-        // Item arrays to use as temp storage for skills and items
-        // These are specicically item arrays b/c Outward treats skills as Items
-        // ( obviously items are also treated as Items :P )
-        public int[] quickSlots1;
-        public int[] quickSlots2;
-
-        // ***UPDATE DESCRIPTION ONCE I FIGURE OUT WHAT THESE DO***
-        //    (unused in current implementation of code)
-        public string[] defaultIDs = new string[8];
-        private bool isInited = false;
 
         private int numSlots = 8;
         private string charUID;
@@ -81,8 +74,9 @@ namespace BetterQuickSlots
                     Type quickSlotContextOptionsType = typeof(QuickSlotContextOptions);
                     FieldInfo qsDisplayField = quickSlotContextOptionsType.GetField("m_quickSlotDisplay", BindingFlags.NonPublic | BindingFlags.Instance);
                     QuickSlotDisplay qsDisplay = (QuickSlotDisplay)qsDisplayField.GetValue(self);
-                    
-                    SaveEmptySkillSlot(qsDisplay.RefSlotID);
+
+                    Character character = self.LocalCharacter;
+                    SaveEmptySkillSlot(character, qsDisplay.RefSlotID);
 
                     break;
             }
@@ -95,8 +89,14 @@ namespace BetterQuickSlots
             var character = CharacterManager.Instance.GetCharacter(charUID);
             var qsManager = character.gameObject.GetComponent<CharacterQuickSlotManager>();
 
-            SetBarMode(BarMode.FIRST);
-            PopulateSkillBar(qsManager);
+            foreach (string charID in CharacterManager.Instance.PlayerCharacters.Values)
+            {
+                charCurrentBarMode[charID] = BarMode.FIRST;
+                PopulateSkillBar(CharacterManager.Instance.GetCharacter(charID));
+            }
+            
+            //SetBarMode(BarMode.FIRST);
+            //PopulateSkillBar(character);
 
             orig(menuMngr);
         }
@@ -110,6 +110,7 @@ namespace BetterQuickSlots
                 return;
 
             int playerID = localCharCtrl.Character.OwnerPlayerSys.PlayerID;
+            string charID = localCharCtrl.Character.UID;
             var quickSlotMngr = localCharCtrl.Character.QuickSlotMngr;
 
             // AnyQuickSlotUsed checks if a quickslot is being activated
@@ -125,26 +126,26 @@ namespace BetterQuickSlots
                     Debug.Log("localCharacterControl character = " + localCharCtrl.Character.UID + " | " + localCharCtrl.Character.Name);
 
                     // If the current BarMode is FIRST...
-                    if (barMode == BarMode.FIRST)
+                    if (charCurrentBarMode[charID] == BarMode.FIRST)
                     {
                         if (dev)
                             Debug.Log("Switching to SECOND skill bar");
 
                         // Set barMode to SECOND
-                        SetBarMode(BarMode.SECOND);
+                        charCurrentBarMode[charID] = BarMode.SECOND;
                         // And repopulate the default-behaviour skill bar w/ entries from quickSlots2[]
-                        PopulateSkillBar(quickSlotMngr);
+                        PopulateSkillBar(localCharCtrl.Character);
                     }
                     // Else if the current BarMode is SECOND...
-                    else if (barMode == BarMode.SECOND)
+                    else if (charCurrentBarMode[charID] == BarMode.SECOND)
                     {
                         if (dev)
                             Debug.Log("Switching to FIRST skill bar");
 
                         // Set barMode to FIRST
-                        SetBarMode(BarMode.FIRST);
+                        charCurrentBarMode[charID] = BarMode.FIRST;
                         // And repopulate the default-behaviour skill bar w/ entries from quickSlots1[]
-                        PopulateSkillBar(quickSlotMngr);
+                        PopulateSkillBar(localCharCtrl.Character);
                     }
                 }
             }
@@ -158,16 +159,17 @@ namespace BetterQuickSlots
             // call LoadConfig() method from betterQuickSlotsMod class
             betterQuickSlots.LoadConfig();
 
-            quickSlots1 = new int[8];
-            quickSlots2 = new int[8];
-
             betterQuickSlots.SetCurrentCharacter(self.CharUID, self.Name);
 
             //Set local class variable charUID to the appropriate UID from PlayerSystem
             charUID = self.CharUID;
 
-            SetBarMode(BarMode.FIRST);
-            PopulateSkillBar(self.ControlledCharacter.QuickSlotMngr);
+            Debug.Log("TEST LOG: " + self.CharUID + " | " + self.Name + " ran for PlayerSystem.Start()");
+
+            LoadQuickSlotArraysFromJSON(self.CharUID, self.Name);
+
+            charCurrentBarMode[self.CharUID] = BarMode.FIRST;
+            PopulateSkillBar(self.ControlledCharacter);
         }
 
         private void LevelDoneLoadingHook(On.NetworkLevelLoader.orig_LevelDoneLoading orig, NetworkLevelLoader self)
@@ -176,11 +178,11 @@ namespace BetterQuickSlots
 
             Character character = CharacterManager.Instance.GetCharacter(charUID);
             var quickSlotManager = character.gameObject.GetComponent<CharacterQuickSlotManager>();
-            LoadQuickSlotArraysFromJSON(quickSlotManager);
+            LoadQuickSlotArraysFromJSON(character.UID, character.Name);
 
             //ClearSkillBar(quickSlotManager);
-            SetBarMode(BarMode.FIRST);
-            PopulateSkillBar(quickSlotManager);
+            charCurrentBarMode[character.UID] = BarMode.FIRST;
+            PopulateSkillBar(character);
         }
 
         private void CQSManager_OnAssigningQuickSlotHook(On.CharacterQuickSlotManager.orig_OnAssigningQuickSlot_1 orig, CharacterQuickSlotManager qsManager, Item _itemToQuickSlot)
@@ -196,7 +198,8 @@ namespace BetterQuickSlots
             }
             else
             {
-                SaveSkillSlotByIndex(_itemToQuickSlot.QuickSlotIndex, _itemToQuickSlot);
+                Character character = qsManager.GetComponent<Character>();
+                SaveSkillSlotByIndex(character, _itemToQuickSlot.QuickSlotIndex, _itemToQuickSlot);
             }
         }
 
@@ -204,19 +207,20 @@ namespace BetterQuickSlots
 
         // LoadBarEntriesFromJSON populates quickSlots1[] and quickSlots2[] using the data from
         // the modConfig file saved in betterQuickSlots
-        private void LoadQuickSlotArraysFromJSON(CharacterQuickSlotManager qsManager)
+        
+        private void LoadQuickSlotArraysFromJSON(string charID, string charName)
         {
-            CharacterInventory inventory = qsManager.gameObject.GetComponent<CharacterInventory>();
-            CharacterSkillKnowledge knownSkills = inventory.SkillKnowledge;
-            ItemManager itemManager = ItemManager.Instance;
+            int[] qs1 = new int[8];
+            int[] qs2 = new int[8];
 
+            betterQuickSlots.SetCurrentCharacter(charID, charName);
             // Load items and skills into quickSlots1[]
             for (int i = 0; i < numSlots; i++)
             {
                 if (dev)
                     Debug.Log("LOADING SKILLBAR SLOT " + i + "FOR 1ST BAR");
 
-                quickSlots1[i] = betterQuickSlots.currentCharacter["FirstBarIDs"][i];
+                qs1[i] = betterQuickSlots.currentCharacter["FirstBarIDs"][i];
             }
 
             // Load items and skills into quickSlots2[]
@@ -225,14 +229,21 @@ namespace BetterQuickSlots
                 if (dev)
                     Debug.Log("LOADING SKILLBAR SLOT " + i + "FOR 2ND BAR");
 
-                quickSlots2[i] = betterQuickSlots.currentCharacter["SecondBarIDs"][i];
+                qs2[i] = betterQuickSlots.currentCharacter["SecondBarIDs"][i];
             }
-        }
 
+            charQuickSlotArrays[charID] = new int[2, 8] { 
+                { qs1[0], qs1[1], qs1[2], qs1[3], qs1[4], qs1[5], qs1[6], qs1[7] },
+                { qs2[0], qs2[1], qs2[2], qs2[3], qs2[4], qs2[5], qs2[6], qs2[7] }
+            };
+        }
+        
         // PopulateSkillBar populates the default-behaviour Outward skill bar with enties from either
         // quickSlots1[] or quickSlots2[] based on the value of barMode
-        private void PopulateSkillBar(CharacterQuickSlotManager qsManager)
+        private void PopulateSkillBar(Character character)
         {
+            CharacterQuickSlotManager qsManager = character.QuickSlotMngr;
+
             if (qsManager.isActiveAndEnabled)
             {
                 CharacterInventory inventory = qsManager.gameObject.GetComponent<CharacterInventory>();
@@ -244,7 +255,7 @@ namespace BetterQuickSlots
 
                 // The entries we are going to use to populate Outward's default-behaviour skill bar is dependent on
                 // whether we want the first skill bar or the second skill bar
-                switch (barMode)
+                switch (charCurrentBarMode[character.UID])
                 {
                     // In the case where we want entries from the first skill bar...
                     case BarMode.FIRST:
@@ -252,18 +263,18 @@ namespace BetterQuickSlots
 
                         for (int i = 0; i < numSlots; i++)
                         {
-                            if (quickSlots1[i] != 0)
+                            if (charQuickSlotArrays[character.UID][0, i] != 0)
                             {
                                 // This line loads a skill into the variable called "entry"...
-                                var entry = knownSkills.GetItemFromItemID(quickSlots1[i]);
+                                var entry = knownSkills.GetItemFromItemID(charQuickSlotArrays[character.UID][0, i]);
 
                                 // ...But if "entry" isn't a skill, load an item instead
                                 if (entry == null)
                                 {
-                                    if (inventory.GetOwnedItems(quickSlots1[i]).Count() == 0)
-                                        entry = ResourcesPrefabManager.Instance.GetItemPrefab(quickSlots1[i]);
+                                    if (inventory.GetOwnedItems(charQuickSlotArrays[character.UID][0, i]).Count() == 0)
+                                        entry = ResourcesPrefabManager.Instance.GetItemPrefab(charQuickSlotArrays[character.UID][0, i]);
                                     else
-                                        entry = inventory.GetOwnedItems(quickSlots1[i]).First();
+                                        entry = inventory.GetOwnedItems(charQuickSlotArrays[character.UID][0, i]).First();
                                 }
 
                                 qsManager.SetQuickSlot(i, entry, false);
@@ -281,18 +292,18 @@ namespace BetterQuickSlots
 
                         for (int i = 0; i < numSlots; i++)
                         {
-                            if (quickSlots2[i] != 0)
+                            if (charQuickSlotArrays[character.UID][1, i] != 0)
                             {
                                 // This line loads a skill into the variable called "entry"...
-                                var entry = knownSkills.GetItemFromItemID(quickSlots2[i]);
+                                var entry = knownSkills.GetItemFromItemID(charQuickSlotArrays[character.UID][1, i]);
 
                                 // ...But if "entry" isn't a skill, load an item instead
                                 if (entry == null)
                                 {
-                                    if (inventory.GetOwnedItems(quickSlots2[i]).Count() == 0)
-                                        entry = ResourcesPrefabManager.Instance.GetItemPrefab(quickSlots2[i]);
+                                    if (inventory.GetOwnedItems(charQuickSlotArrays[character.UID][1, i]).Count() == 0)
+                                        entry = ResourcesPrefabManager.Instance.GetItemPrefab(charQuickSlotArrays[character.UID][1, i]);
                                     else
-                                        entry = inventory.GetOwnedItems(quickSlots2[i]).First();
+                                        entry = inventory.GetOwnedItems(charQuickSlotArrays[character.UID][1, i]).First();
                                 }
 
                                 qsManager.SetQuickSlot(i, entry, false);
@@ -318,16 +329,18 @@ namespace BetterQuickSlots
             }
         }
 
-        private void SaveSkillSlotByIndex(int index, Item item)
+        private void SaveSkillSlotByIndex(Character character, int index, Item item)
         {
+            betterQuickSlots.SetCurrentCharacter(character.UID, character.Name);
+
             // What we do here depends on which skill bar is currently active
-            switch (barMode)
+            switch (charCurrentBarMode[character.UID])
             {
                 case BarMode.FIRST:
                     if (dev)
                         Debug.Log("Setting quickSlots1[" + index + "] to " + item);
 
-                    quickSlots1[index] = item.ItemID;
+                    charQuickSlotArrays[character.UID][0, index] = item.ItemID;
                     betterQuickSlots.currentCharacter["FirstBarIDs"][index] = item.ItemID;
 
                     break;
@@ -336,7 +349,7 @@ namespace BetterQuickSlots
                     if (dev)
                         Debug.Log("Setting quickSlots2[" + index + "] to " + item);
 
-                    quickSlots2[index] = item.ItemID;
+                    charQuickSlotArrays[character.UID][1, index] = item.ItemID;
                     betterQuickSlots.currentCharacter["SecondBarIDs"][index] = item.ItemID;
 
                     break;
@@ -345,17 +358,19 @@ namespace BetterQuickSlots
             betterQuickSlots.SaveConfig();
         }
 
-        private void SaveEmptySkillSlot(int index)
+        private void SaveEmptySkillSlot(Character character, int index)
         {
-            switch (barMode) {
+            betterQuickSlots.SetCurrentCharacter(character.UID, character.Name);
+
+            switch (charCurrentBarMode[character.UID]) {
                 case BarMode.FIRST:
-                    quickSlots1[index] = 0;
+                    charQuickSlotArrays[character.UID][0, index] = 0;
                     betterQuickSlots.currentCharacter["FirstBarIDs"][index] = 0;
 
                     break;
 
                 case BarMode.SECOND:
-                    quickSlots2[index] = 0;
+                    charQuickSlotArrays[character.UID][1, index] = 0;
                     betterQuickSlots.currentCharacter["SecondBarIDs"][index] = 0;
 
                     break;

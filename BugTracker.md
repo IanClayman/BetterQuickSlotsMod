@@ -47,3 +47,5 @@
 		
 		
 {"characters":[{"characterUID":"NJsukNThOk6LRDUzLe9BVg","characterName":"Garruk","FirstBarIDs":[8100070,8100360,8100071,8100350,8200120,0,0,5100000],"SecondBarIDs":[4400010,4300110,4200040,4300010,0,0,0,0]}]}
+
+{"characters":[{"characterUID":"NJsukNThOk6LRDUzLe9BVg","characterName":"Garruk","FirstBarIDs":[8100070,8100360,8100071,8100350,8200120,0,0,5100000],"SecondBarIDs":[4400010,4300110,4200040,4300010,0,0,0,0]},{"characterUID":"c5C82r1cbk-zSEaserDblg","characterName":"Iliana","FirstBarIDs":[4300010,0,0,8100120,0,0,0,0],"SecondBarIDs":[0,8200040,0,0,0,0,0,0]}]}

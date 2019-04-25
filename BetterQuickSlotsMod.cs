@@ -1,31 +1,16 @@
 ﻿/* * * * *
  * BetterQuickSlots
  * --------------------
- * "It Does What It Says"
+ * Better Quick Slots allows players to create and switch between two quick slot bars, increasing the number of available quick slots from eight to sixteen.  It is also highly
+ * optimized, with no visible stutter and no discernable increase to load times.
  * 
- * Better Quick Slots is an improvement on the mod "Second Quick Slot Mod" (https://www.nexusmods.com/outward/mods/18) created by Emo#7953.
- * It eliminates the stutter that occurred in that version when switching between the two quick slot bars and improves overall performance
+ * Created by IAmTheClayman (Discord: IAmTheClayman#1280) with major credit to Emo#7953 for the original concept ("Second Quick Slot Mod" - https://www.nexusmods.com/outward/mods/18) 
+ * and tech support along the way. Would never have been able to make this without your help!
  * 
- * Created by IAmTheClayman (Discord: IAmTheClayman#1280) with major credit to Emo#7953 for the original concept and tech support along the way.
- * Would never have been able to make this without your help!
- * 
- * WHAT EXACTLY DOES IT DO
- * Better Quick Slots allows the player to set two separate quick slot bars as opposed to Outward's default single bar.  Users can specify a custom keybinding
- * to switch between the two skill bars in Mods/BetterQuickSlots_Config.json.
- * 
- * Please not that in current implementation the first time loading up the mod on a character will cause all previously-assigned  quick slots to be cleared.  Make sure
- * to switch between the quick slot bars twice to fully clear skills before attempting to set new ones.  THIS MOD IS A PRE-1.0 RELEASE, so please be understanding as we make
- * quality of life improvements and add features down the line.
- * 
- * PLANNED FEATURES
- * - Right now the assigned keybinding will switch quick slot bars even while in inventory menus, during trading with merchants, during general NPC dialogue, etc.  Plans are to 
- *      alter functionality to be more in line with general gameplay input (i.e. attacks getting locked out while in menus)
- * - Ability to set the keybinding for switching quick slot bars in the default keyboard and controller keybinding menus, including the option to set up to 2 bindings
- *      per control scheme as with every other input in Outward
- * - UI elements to allow players to tell which of the two quick slot bars they are using at a glance, possibly with custom naming for each set
+ * Please note that this mod is a work-in-progress project, so I hope you'll be understanding as we make quality of life improvements and add new features down the line.
  * 
  * If you are reading this and have any questions feel free to contact me via Discord.  I am still learning my way around Outward modding (and modding in general) so I
- * will do my best to assist you but please be patient and know that your programming skills may far exceed my own :p
+ * will do my best to assist you but please be patient and know that your programming skills may exceed my own :P
  * 
  * * * * */
 using System;
@@ -56,7 +41,7 @@ namespace BetterQuickSlots
         public BetterQuickSlotsMod()
         {
             this.ModID = "\"Better Quick Slots Mod\"";
-            this.Version = "1.0";
+            this.Version = "1.1";
             //this.loadPriority = 0;
             this.author = "IAmTheClayman";
         }
